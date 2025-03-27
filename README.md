@@ -16,4 +16,8 @@ We experiment with multiple models:
 - **Deep Learning:** LSTM for time-series modeling
 - **Feature Engineering:** Handling irregular time-series, missing data, and temporal dependencies
 
+## Get started
+Download the zip file from:
+unzip and put the content in in the `data/` folder
+
 ## Folder Structure
