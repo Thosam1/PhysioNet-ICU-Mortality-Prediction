@@ -1,0 +1,8 @@
+.idea
+data/
+/outcomes-a.parquet
+/outcomes-b.parquet
+/outcomes-c.parquet
+/set-a.parquet
+/set-b.parquet
+/set-c.parquet
