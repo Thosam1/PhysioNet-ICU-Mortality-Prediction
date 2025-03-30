@@ -1,9 +1,12 @@
+<div align="center">
+  
 # PhysioNet-ICU-Mortality-Prediction
 
 [![Maintainability Rating](https://sonarcloud.io/api/project_badges/measure?project=Thosam1_PhysioNet-ICU-Mortality-Prediction&metric=sqale_rating)](https://sonarcloud.io/summary/new_code?id=Thosam1_PhysioNet-ICU-Mortality-Prediction)
 [![Security Rating](https://sonarcloud.io/api/project_badges/measure?project=Thosam1_PhysioNet-ICU-Mortality-Prediction&metric=security_rating)](https://sonarcloud.io/summary/new_code?id=Thosam1_PhysioNet-ICU-Mortality-Prediction)
 [![Reliability Rating](https://sonarcloud.io/api/project_badges/measure?project=Thosam1_PhysioNet-ICU-Mortality-Prediction&metric=reliability_rating)](https://sonarcloud.io/summary/new_code?id=Thosam1_PhysioNet-ICU-Mortality-Prediction)
 
+</div>
 
 ## Overview
 This project aims to predict ICU patient mortality using the **PhysioNet 2012 Challenge** dataset. We develop machine learning models based on **irregularly sampled multivariate time-series data**, capturing patient vitals and static attributes from the first **48 hours of ICU stay**. The goal is to predict whether a patient **survives or dies** in the ICU.
