@@ -2,6 +2,9 @@ from PIL.ImageChops import offset
 from sklearn.preprocessing import StandardScaler
 from data_preprocessing.data_imputation import forward_fill_then_median
 import pandas as pd
+from sklearn.preprocessing import RobustScaler
+
+from data_preprocessing.data_imputation import forward_fill_then_median
 
 def aggregate_patient_data_basic(X, method):
     """
@@ -43,17 +46,30 @@ def aggregate_patient_data_advanced(X):
     """
 
     # Define feature groups
+    # 11
     dynamic_feats = [
         'DiasABP', 'GCS', 'Glucose', 'HR', 'MAP',
         'NIDiasABP', 'NIMAP', 'NISysABP',
         'RespRate', 'SaO2', 'Temp'
     ]
 
+    # 24
     lab_feats = [
         'Albumin', 'ALP', 'ALT', 'AST', 'Bilirubin', 'BUN', 'Cholesterol',
         'Creatinine', 'FiO2', 'HCO3', 'HCT', 'K', 'Lactate', 'Mg', 'Na',
         'PaCO2', 'PaO2', 'pH', 'Platelets', 'SysABP', 'TroponinI',
-        'TroponinT', 'WBC', 'Weight'
+        'TroponinT', 'WBC', 'Weight', 'Urine'
+    ]
+
+    static_feats = [
+        'Age',
+        'Gender',
+        'Height',
+        'MechVent',
+    ]
+
+    removed_feats = [
+        'MechVent',
     ]
 
     # Define aggregation methods for dynamic features (first, last, lowest, highest, median)
@@ -68,30 +84,29 @@ def aggregate_patient_data_advanced(X):
     # Start by grouping the data
     grouped = X.groupby('recordid')
 
-    # Initialize an empty list to store the aggregated data for each patient
-    aggregated_data = []
+    # Dictionary to store all aggregated features
+    aggregated_features = {}
 
-    # Aggregate dynamic features using the defined aggregation methods
-    for patient_id, group in grouped:
-        patient_data = {}
+    # Aggregate dynamic features using different methods
+    for feature in dynamic_feats:
+        for agg_name, agg_func in agg_methods.items():
+            agg_col_name = f"{feature}_{agg_name}"
+            aggregated_features[agg_col_name] = grouped[feature].agg(agg_func)
 
-        print("Patient ID:", patient_id)
-        # Aggregating dynamic features
-        for feature in dynamic_feats:
-            for agg_name, agg_func in agg_methods.items():
-                agg_col_name = f"{feature}_{agg_name}"
-                patient_data[agg_col_name] = group[feature].iloc[0]
+    # Aggregate lab features (first and last)
+    for feature in lab_feats:
+        aggregated_features[f"{feature}_first"] = grouped[feature].first()
+        aggregated_features[f"{feature}_last"] = grouped[feature].last()
 
-        # Aggregating lab features (first and last only)
-        for feature in lab_feats:
-            patient_data[f"{feature}_first"] = group[feature].iloc[0]
-            patient_data[f"{feature}_last"] = group[feature].iloc[-1]
+    # Aggregate static features (only one value per patient)
+    for feature in static_feats:
+        aggregated_features[feature] = grouped[feature].last()
 
-        # Add the patient's aggregated data to the list
-        aggregated_data.append(patient_data)
+    # Convert the dictionary into a DataFrame
+    aggregated_df = pd.DataFrame(aggregated_features)
 
-    # Convert the list of aggregated data into a DataFrame
-    aggregated_df = pd.DataFrame(aggregated_data)
+    # Reset index to bring 'recordid' as a column (if needed)
+    aggregated_df.reset_index(inplace=True)
 
     return aggregated_df
 
@@ -111,12 +126,13 @@ def preprocess_patient_data_for_ML_classifier(X_train, X_valid, X_test):
     tuple: Preprocessed X_train, X_valid, X_test datasets with missing values handled.
     """
 
-    # Drop unnecessary columns
-    X_train = X_train.drop(columns=["time", "ICUType"])
-    X_valid = X_valid.drop(columns=["time", "ICUType"])
-    X_test = X_test.drop(columns=["time", "ICUType"])
+    # Step 1: Drop unnecessary columns
+    drop_cols = ["time", "ICUType"]
+    X_train = X_train.drop(columns=drop_cols)
+    X_valid = X_valid.drop(columns=drop_cols)
+    X_test = X_test.drop(columns=drop_cols)
 
-    # Handle missing values
+    # Step 2: Handle missing values
     X_train, train_medians = forward_fill_then_median(X_train)
     X_valid, _ = forward_fill_then_median(X_valid, medians=train_medians)
     X_test, _ = forward_fill_then_median(X_test, medians=train_medians)
@@ -146,21 +162,21 @@ def prepare_data_basic_for_ML_classifier(X_train, X_valid, X_test, method="mean"
         raise ValueError("Invalid method. Choose from 'mean', 'max', or 'last'.")
 
     # Preprocess the data
-    X_train, X_valid, X_test = preprocess_patient_data_for_ML_classifier(X_train, X_valid, X_test)
+    X_train, X_valid, X_test = preprocess_patient_data_for_ML_classifier(X_train, X_valid, X_test, person_id_column="recordid")
 
     # Aggregate the data based on the selected method
-    X_train = aggregate_patient_data_basic(X_train, method=method)
-    X_valid = aggregate_patient_data_basic(X_valid, method=method)
-    X_test = aggregate_patient_data_basic(X_test, method=method)
+    X_train = aggregate_patient_data_basic(X_train, person_id_column="recordid", method=method)
+    X_valid = aggregate_patient_data_basic(X_valid, person_id_column="recordid", method=method)
+    X_test = aggregate_patient_data_basic(X_test, person_id_column="recordid", method=method)
 
     # Drop the patient ID column (do this on copies to avoid modifying the original DataFrames)
-    X_train = X_train.drop(columns=["recordid"]).copy()
-    X_valid = X_valid.drop(columns=["recordid"]).copy()
-    X_test = X_test.drop(columns=["recordid"]).copy()
+    X_train = X_train.copy().drop(columns=["recordid"])
+    X_valid = X_valid.copy().drop(columns=["recordid"])
+    X_test = X_test.copy().drop(columns=["recordid"])
 
     # TODO
-    # Scale the aggregated data using StandardScaler
-    scaler = StandardScaler()
+    # Scale the aggregated data using RobustScaler
+    scaler = RobustScaler()
     X_train, X_valid, X_test = scale_data(X_train, X_valid, X_test, scaler)
 
     return X_train, X_valid, X_test
@@ -171,7 +187,7 @@ def prepare_data_advanced_for_ML_classifier(X_train, X_valid, X_test):
     - Dropping unnecessary columns
     - Forward filling missing values and replacing NaNs with column medians
     - Aggregating the data using an advanced aggregation method
-    - Scaling the data using StandardScaler
+    - Scaling the data using RobustScaler
 
     Parameters:
     X_train (pd.DataFrame): Training dataset
@@ -191,12 +207,12 @@ def prepare_data_advanced_for_ML_classifier(X_train, X_valid, X_test):
     X_test = aggregate_patient_data_advanced(X_test)
 
     # Drop patient ID column (if still present)
-    X_train = X_train.drop(columns=["recordid"], errors="ignore")
-    X_valid = X_valid.drop(columns=["recordid"], errors="ignore")
-    X_test = X_test.drop(columns=["recordid"], errors="ignore")
+    X_train = X_train.copy().drop(columns=["recordid"])
+    X_valid = X_valid.copy().drop(columns=["recordid"])
+    X_test = X_test.copy().drop(columns=["recordid"])
 
-    # Scale data using StandardScaler
-    scaler = StandardScaler()
+    # Scale data using RobustScaler
+    scaler = RobustScaler()
     return scale_data(X_train, X_valid, X_test, scaler)
 
 def scale_data(X_train, X_valid, X_test, scaler):
