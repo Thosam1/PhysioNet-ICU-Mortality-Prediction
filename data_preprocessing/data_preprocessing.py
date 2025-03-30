@@ -162,12 +162,12 @@ def prepare_data_basic_for_ML_classifier(X_train, X_valid, X_test, method="mean"
         raise ValueError("Invalid method. Choose from 'mean', 'max', or 'last'.")
 
     # Preprocess the data
-    X_train, X_valid, X_test = preprocess_patient_data_for_ML_classifier(X_train, X_valid, X_test, person_id_column="recordid")
+    X_train, X_valid, X_test = preprocess_patient_data_for_ML_classifier(X_train, X_valid, X_test)
 
     # Aggregate the data based on the selected method
-    X_train = aggregate_patient_data_basic(X_train, person_id_column="recordid", method=method)
-    X_valid = aggregate_patient_data_basic(X_valid, person_id_column="recordid", method=method)
-    X_test = aggregate_patient_data_basic(X_test, person_id_column="recordid", method=method)
+    X_train = aggregate_patient_data_basic(X_train, method=method)
+    X_valid = aggregate_patient_data_basic(X_valid, method=method)
+    X_test = aggregate_patient_data_basic(X_test, method=method)
 
     # Drop the patient ID column (do this on copies to avoid modifying the original DataFrames)
     X_train = X_train.copy().drop(columns=["recordid"])
