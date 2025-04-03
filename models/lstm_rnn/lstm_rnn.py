@@ -8,6 +8,7 @@ from keras.callbacks import EarlyStopping, ReduceLROnPlateau
 from sklearn.metrics import roc_auc_score, average_precision_score
 import numpy as np
 from keras.utils import set_random_seed
+from keras.layers import Bidirectional
 
 from data_preprocessing.data_preprocessing import scale_data, preprocess_patient_data_for_ML_classifier
 
@@ -77,3 +78,33 @@ def build_lstm_model(input_shape):
     )
     return model
 
+def build_bidirectional_lstm_model(input_shape):
+    """
+    Build a bidirectional LSTM model for binary classification.
+
+    Parameters:
+    input_shape (tuple): Shape of the input data.
+
+    Returns:
+    model: Compiled bidirectional LSTM model.
+    """
+    model = Sequential()
+    model.add(Bidirectional(LSTM(64, return_sequences=True, kernel_regularizer='l2'), input_shape=input_shape))
+    model.add(Dropout(0.3))
+    model.add(Bidirectional(LSTM(32, return_sequences=True, kernel_regularizer='l2')))
+    model.add(Dropout(0.3))
+
+    # Use the last output of the sequence
+    model.add(LSTM(32, return_sequences=False, kernel_regularizer='l2'))
+
+    # Dense layer for binary classification
+    model.add(Dense(1, activation='sigmoid'))  # Sigmoid activation for binary classification
+
+    # Compile the model with binary cross-entropy loss and Adam optimizer
+    optimizer = Adam(learning_rate=0.0005)
+    model.compile(
+        loss='binary_crossentropy',
+        optimizer=optimizer,
+        metrics=['accuracy', Precision(), Recall()]
+    )
+    return model

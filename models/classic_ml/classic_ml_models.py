@@ -114,9 +114,6 @@ def train_and_evaluate_model(model_type, X_train, X_valid, X_test, y_train, y_va
     # Train the model
     model = train_model(model_type, X_train, y_train)
 
-    # Perform hyperparameter tuning
-    # best_model, best_params, best_score = hyperparameter_tuning(model_type, X_train, y_train, X_valid, y_valid)
-
     # Evaluate on validation and test sets
     val_results = evaluate_model(model, X_valid, y_valid)
     test_results = evaluate_model(model, X_test, y_test)
@@ -137,16 +134,15 @@ def train_and_evaluate_for_datasets(datasets, model_type, X_train_dict, X_valid_
         X_valid = X_valid_dict[dataset]
         X_test = X_test_dict[dataset]
 
-        # Perform hyperparameter tuning
-        best_model, best_params, best_score = hyperparameter_tuning(model_type, X_train, y_train, X_valid, y_valid)
+        # Train the model
+        model = train_model(model_type, X_train, y_train)
 
-        # Evaluate on the test set using the best model
-        test_result = evaluate_model(best_model, X_test, y_test)
+        # Evaluate on the test set
+        test_result = evaluate_model(model, X_test, y_test)
 
         results[dataset] = {
             'test_auroc': test_result['auroc'],
             'test_auprc': test_result['auprc'],
-            'best_params': best_params  # Store best hyperparameters
         }
 
     return results
