@@ -4,6 +4,62 @@ from sklearn.linear_model import LogisticRegression
 from sklearn.metrics import roc_auc_score, average_precision_score
 from tqdm import tqdm
 
+from sklearn.model_selection import GridSearchCV
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.linear_model import LogisticRegression
+from sklearn.metrics import make_scorer, roc_auc_score
+
+def hyperparameter_tuning(model_type, X_train, y_train, X_valid, y_valid):
+    """
+    Perform hyperparameter tuning using GridSearchCV.
+
+    Parameters:
+    - model_type (str): 'rf' for RandomForest, 'lr' for Logistic Regression
+    - X_train (pd.DataFrame): Training features
+    - y_train (pd.Series or np.array): Training labels
+    - X_valid (pd.DataFrame): Validation features
+    - y_valid (pd.Series or np.array): Validation labels
+
+    Returns:
+    - best_model: The model trained with the best hyperparameters
+    - best_params: The best hyperparameters found
+    - best_score: The best AUROC score on validation set
+    """
+
+    if model_type == 'rf':
+        model = RandomForestClassifier(random_state=42)
+        param_grid = {
+            'n_estimators': [50, 100, 200],
+            'max_depth': [None, 10, 20],
+            'min_samples_split': [2, 5, 10],
+            'min_samples_leaf': [1, 2, 4]
+        }
+    elif model_type == 'lr':
+        model = LogisticRegression(max_iter=1000, random_state=42)
+        param_grid = {
+            'C': [0.01, 0.1, 1, 10],
+            'solver': ['liblinear', 'newton-cg']
+        }
+    else:
+        raise ValueError("Unsupported model type. Use 'rf' or 'lr'.")
+
+    # Use AUROC as the scoring metric
+    scorer = make_scorer(roc_auc_score, needs_proba=True)
+
+    # Grid search
+    grid_search = GridSearchCV(model, param_grid, scoring=scorer, cv=3, n_jobs=-1)
+    grid_search.fit(X_train, y_train)
+
+    # Get the best model and parameters
+    best_model = grid_search.best_estimator_
+    best_params = grid_search.best_params_
+    best_score = grid_search.best_score_
+
+    print(f"Best parameters for {model_type.upper()}: {best_params}")
+    print(f"Best validation AUROC: {best_score:.4f}")
+
+    return best_model, best_params, best_score
+
 def train_model(model_type, X_train, y_train):
     """
     Train the model on the given training data based on the specified model type.
@@ -58,6 +114,9 @@ def train_and_evaluate_model(model_type, X_train, X_valid, X_test, y_train, y_va
     # Train the model
     model = train_model(model_type, X_train, y_train)
 
+    # Perform hyperparameter tuning
+    # best_model, best_params, best_score = hyperparameter_tuning(model_type, X_train, y_train, X_valid, y_valid)
+
     # Evaluate on validation and test sets
     val_results = evaluate_model(model, X_valid, y_valid)
     test_results = evaluate_model(model, X_test, y_test)
@@ -69,41 +128,25 @@ def train_and_evaluate_model(model_type, X_train, X_valid, X_test, y_train, y_va
 
 def train_and_evaluate_for_datasets(datasets, model_type, X_train_dict, X_valid_dict, X_test_dict, y_train, y_valid, y_test):
     """
-    Train and evaluate models (Logistic Regression or Random Forest) for each dataset (mean, max, last_measured).
-
-    Parameters:
-    datasets (list): List of dataset names to iterate over ('mean', 'max', 'last_measured')
-    model_type (str): The type of model to train ('rf' or 'lr')
-    X_train_dict, X_valid_dict, X_test_dict (dict): Dictionaries containing feature datasets for each type
-    y_train, y_valid, y_test (pd.Series or np.array): Target labels for training, validation, and testing
-
-    Returns:
-    dict: A dictionary containing performance results for each dataset
+    Train and evaluate models for each dataset using hyperparameter tuning.
     """
     results = {}
 
-    # Using tqdm for progress feedback
     for dataset in tqdm(datasets, desc=f"Training and Evaluating {model_type.upper()} Models", unit="dataset"):
-        # Select the appropriate dataset for X
         X_train = X_train_dict[dataset]
         X_valid = X_valid_dict[dataset]
         X_test = X_test_dict[dataset]
 
-        # Train the model
-        model = train_model(model_type, X_train, y_train)
+        # Perform hyperparameter tuning
+        best_model, best_params, best_score = hyperparameter_tuning(model_type, X_train, y_train, X_valid, y_valid)
 
-        # Evaluate the model on the validation set for tuning purposes
-        valid_result = evaluate_model(model, X_valid, y_valid)
+        # Evaluate on the test set using the best model
+        test_result = evaluate_model(best_model, X_test, y_test)
 
-        # Evaluate the model on the test set for final evaluation
-        test_result = evaluate_model(model, X_test, y_test)
-
-        # Store the result
         results[dataset] = {
-            # 'valid_auroc': valid_result['auroc'],
             'test_auroc': test_result['auroc'],
-            # 'valid_auprc': valid_result['auprc'],
-            'test_auprc': test_result['auprc']
+            'test_auprc': test_result['auprc'],
+            'best_params': best_params  # Store best hyperparameters
         }
 
     return results
