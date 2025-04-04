@@ -1,14 +1,12 @@
-import tensorflow as tf
-from sklearn.preprocessing import StandardScaler
-from keras.models import Sequential
-from keras.layers import LSTM, Dense, Dropout, GlobalAveragePooling1D
-from keras.optimizers import Adam
-from keras.metrics import Precision, Recall
-from keras.callbacks import EarlyStopping, ReduceLROnPlateau
-from sklearn.metrics import roc_auc_score, average_precision_score
 import numpy as np
+from keras.callbacks import EarlyStopping, ReduceLROnPlateau
+from keras.layers import Bidirectional, Input
+from keras.layers import LSTM, Dense, Dropout, GlobalAveragePooling1D
+from keras.metrics import Precision, Recall
+from keras.models import Sequential, Model
+from keras.optimizers import Adam
 from keras.utils import set_random_seed
-from keras.layers import Bidirectional
+from sklearn.preprocessing import StandardScaler
 
 from data_preprocessing.data_preprocessing import scale_data, preprocess_patient_data_for_ML_classifier
 
@@ -57,20 +55,22 @@ def build_lstm_model(input_shape):
     Returns:
     model: Compiled LSTM model.
     """
-    model = Sequential()
-    model.add(LSTM(64, input_shape=input_shape, return_sequences=True, kernel_regularizer='l2'))
-    model.add(Dropout(0.3))
-    model.add(LSTM(32, return_sequences=True, kernel_regularizer='l2'))
-    model.add(Dropout(0.3))
+    inputs = Input(shape=input_shape)  # Explicit input layer
+    x = LSTM(64, return_sequences=True, kernel_regularizer='l2')(inputs)
+    x = Dropout(0.3)(x)
+    x = LSTM(32, return_sequences=True, kernel_regularizer='l2')(x)
+    x = Dropout(0.3)(x)
 
     # Use the last output of the sequence
-    model.add(LSTM(32, return_sequences=False, kernel_regularizer='l2'))
+    x = LSTM(32, return_sequences=False, kernel_regularizer='l2')(x)  # Last LSTM (Embedding)
 
     # Dense layer for binary classification
-    model.add(Dense(1, activation='sigmoid'))  # Sigmoid activation for binary classification
+    outputs = Dense(1, activation='sigmoid')(x)  # Classification layer
 
     # Compile the model with binary cross-entropy loss and Adam optimizer
     optimizer = Adam(learning_rate=0.0005)
+    model = Model(inputs=inputs, outputs=outputs)  # Functional API
+
     model.compile(
         loss='binary_crossentropy',
         optimizer=optimizer,
@@ -108,3 +108,11 @@ def build_bidirectional_lstm_model(input_shape):
         metrics=['accuracy', Precision(), Recall()]
     )
     return model
+
+def get_patient_embeddings(model, X):
+    """
+    Extracts a single vector representation for each patient.
+    """
+    lstm_layer = keras.Model(inputs=model.input, outputs=model.layers[-2].output)  # Get last LSTM layer output
+    embeddings = lstm_layer.predict(X)
+    return embeddings

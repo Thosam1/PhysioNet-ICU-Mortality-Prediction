@@ -1,13 +1,11 @@
 import matplotlib.pyplot as plt
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.linear_model import LogisticRegression
-from sklearn.metrics import roc_auc_score, average_precision_score
+from sklearn.metrics import average_precision_score
+from sklearn.metrics import make_scorer, roc_auc_score
+from sklearn.model_selection import GridSearchCV
 from tqdm import tqdm
 
-from sklearn.model_selection import GridSearchCV
-from sklearn.ensemble import RandomForestClassifier
-from sklearn.linear_model import LogisticRegression
-from sklearn.metrics import make_scorer, roc_auc_score
 
 def hyperparameter_tuning(model_type, X_train, y_train, X_valid, y_valid):
     """

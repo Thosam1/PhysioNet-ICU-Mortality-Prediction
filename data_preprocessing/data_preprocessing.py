@@ -108,6 +108,13 @@ def aggregate_patient_data_advanced(X):
 
     return aggregated_df
 
+def drop_unnecessary_columns(X_train, X_valid, X_test):
+    drop_cols = ["time", "ICUType"]
+    X_train = X_train.drop(columns=drop_cols)
+    X_valid = X_valid.drop(columns=drop_cols)
+    X_test = X_test.drop(columns=drop_cols)
+    return X_train, X_valid, X_test
+
 def preprocess_patient_data_for_ML_classifier(X_train, X_valid, X_test):
     """
     Preprocesses patient data by:
@@ -125,10 +132,7 @@ def preprocess_patient_data_for_ML_classifier(X_train, X_valid, X_test):
     """
 
     # Step 1: Drop unnecessary columns
-    drop_cols = ["time", "ICUType"]
-    X_train = X_train.drop(columns=drop_cols)
-    X_valid = X_valid.drop(columns=drop_cols)
-    X_test = X_test.drop(columns=drop_cols)
+    X_train, X_valid, X_test = drop_unnecessary_columns(X_train, X_valid, X_test)
 
     # Step 2: Handle missing values
     X_train, train_medians = forward_fill_then_median(X_train)
