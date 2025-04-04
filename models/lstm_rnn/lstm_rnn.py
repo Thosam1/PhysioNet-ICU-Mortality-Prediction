@@ -1,7 +1,7 @@
 import numpy as np
 from keras.callbacks import EarlyStopping, ReduceLROnPlateau
 from keras.layers import Bidirectional, Input
-from keras.layers import LSTM, Dense, Dropout, GlobalAveragePooling1D
+from keras.layers import LSTM, Dense, Dropout, BatchNormalization
 from keras.metrics import Precision, Recall
 from keras.models import Sequential, Model
 from keras.optimizers import Adam
@@ -56,21 +56,18 @@ def build_lstm_model(input_shape):
     model: Compiled LSTM model.
     """
     inputs = Input(shape=input_shape)  # Explicit input layer
-    x = LSTM(64, return_sequences=True, kernel_regularizer='l2')(inputs)
-    x = Dropout(0.3)(x)
-    x = LSTM(32, return_sequences=True, kernel_regularizer='l2')(x)
-    x = Dropout(0.3)(x)
+    x = LSTM(64, return_sequences=True, kernel_regularizer='l2', recurrent_dropout=0.2, input_shape=input_shape)(inputs)
+    x = LSTM(32, return_sequences=True, kernel_regularizer='l2', recurrent_dropout=0.2)(x)
 
     # Use the last output of the sequence
-    x = LSTM(32, return_sequences=False, kernel_regularizer='l2')(x)  # Last LSTM (Embedding)
+    x = LSTM(32, return_sequences=False, kernel_regularizer='l2', recurrent_dropout=0.2)(x)
 
     # Dense layer for binary classification
-    outputs = Dense(1, activation='sigmoid')(x)  # Classification layer
+    outputs = Dense(1, activation='sigmoid')(x)  # Sigmoid activation for binary classification
 
     # Compile the model with binary cross-entropy loss and Adam optimizer
     optimizer = Adam(learning_rate=0.0005)
     model = Model(inputs=inputs, outputs=outputs)  # Functional API
-
     model.compile(
         loss='binary_crossentropy',
         optimizer=optimizer,
@@ -89,13 +86,11 @@ def build_bidirectional_lstm_model(input_shape):
     model: Compiled bidirectional LSTM model.
     """
     model = Sequential()
-    model.add(Bidirectional(LSTM(64, return_sequences=True, kernel_regularizer='l2'), input_shape=input_shape))
-    model.add(Dropout(0.3))
-    model.add(Bidirectional(LSTM(32, return_sequences=True, kernel_regularizer='l2')))
-    model.add(Dropout(0.3))
+    model.add(Bidirectional(LSTM(64, return_sequences=True, kernel_regularizer='l2', recurrent_dropout=0.2, input_shape=input_shape)))
+    model.add(Bidirectional(LSTM(32, return_sequences=True, kernel_regularizer='l2', recurrent_dropout=0.2)))
 
     # Use the last output of the sequence
-    model.add(LSTM(32, return_sequences=False, kernel_regularizer='l2'))
+    model.add(Bidirectional(LSTM(32, return_sequences=False, kernel_regularizer='l2', recurrent_dropout=0.2)))
 
     # Dense layer for binary classification
     model.add(Dense(1, activation='sigmoid'))  # Sigmoid activation for binary classification
