@@ -18,14 +18,56 @@ This project aims to predict ICU patient mortality using the **PhysioNet 2012 Ch
 - **4 static variables**: Age, Gender, Height, Weight
 - **Target**: Binary classification (Discharged Alive = 0, Deceased = 1)
 
-## Approach
-We experiment with multiple models:
-- **Baseline:** Logistic Regression, Random Forest, XGBoost
-- **Deep Learning:** LSTM for time-series modeling
-- **Feature Engineering:** Handling irregular time-series, missing data, and temporal dependencies
+## How to Run the Project
 
-## Get started
-Download the zip file from:
-unzip and put the content in in the `data/` folder
+1. **Clone the Repository**:
+   ```bash
+   git clone https://github.com/Thosam1/PhysioNet-ICU-Mortality-Prediction.git
+   cd PhysioNet-ICU-Mortality-Prediction
+   ```
+
+2. **Set Up the Environment**:
+   - Have Python 3.8 or higher installed.
+   - Create a virtual environment:
+     ```bash
+     python -m venv venv
+     source venv/bin/activate  # On Windows: venv\Scripts\activate
+     ```
+   - Install dependencies:
+     ```bash
+     pip install -r requirements.txt
+     ```
+
+3. **Prepare the Dataset**:
+   - Download the dataset from [PhysioNet 2012 Challenge](https://physionet.org/content/challenge-2012/).
+   - Unzip the dataset and place its contents in the `data/` folder.
+
+4. **Run the Notebooks**:
+   - Navigate to the `notebooks/` folder.
+   - Execute the Jupyter notebooks in order:
+     - `1_data_parsing.ipynb`
+     - `2_data_preprocessing.ipynb`
+     - `3_model_training.ipynb`
+     - `4_evaluation_and_visualization.ipynb`
+
+Some cells in the notebooks generate files required by subsequent notebooks. If you need to recompute the dataset for model training, uncomment the section in the first notebook labeled with the comment:
+
+```
+bash # Only need to run once
+```
+
+This will regenerate the `.parquet` files used in the later notebooks. Alternatively, you can use the pre-generated `.parquet` files provided in the repository. The same approach applies to the `.pkl` files containing the precomputed embeddings. For using these, please unzip the `outcomes.zip`, `set.zip`, `embeddings.zip` and `non_agg_embeddings.zip`.
 
 ## Folder Structure
+
+```
+PhysioNet-ICU-Mortality-Prediction/
+├── data/                   # Raw data from challenge .zip
+├── data_parsing/           # Scripts for parsing raw data
+├── data_preprocessing/     # Scripts for cleaning and preprocessing data
+├── models/                 # Machine learning and deep learning models
+├── utils/                  # Utility functions
+├── visualization/          # Scripts for generating plots and visualizations
+├── requirements.txt        # Python dependencies
+└── README.md               # Project documentation
+```
