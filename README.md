@@ -56,7 +56,9 @@ Some cells in the notebooks generate files required by subsequent notebooks. If 
 # Only need to run once
 ```
 
-This will regenerate the `.parquet` files used in the later notebooks. Alternatively, you can use the pre-generated `.parquet` files provided in the repository. The same approach applies to the `.pkl` files containing the precomputed embeddings. For using these, please unzip the `outcomes.zip`, `set.zip`, `embeddings.zip` and `non_agg_embeddings.zip`.
+This will regenerate the `.parquet` files used in the later notebooks. Alternatively, you can use the pre-generated `.parquet` files provided in the repository. The same approach applies to the `.pkl` files containing the precomputed embeddings. For using these, please unzip the `outcomes.zip`, `set.zip` and `embeddings.zip`. 
+
+Please notice that the `non_agg_{dataset}_embeddings.zip` were sent separately from the rest of the files in the submission as we were limited by the submission maximum file size. We included these as the non aggregated embedddings take a very long time to compute. To be able to use these files, unzip them into the root directory of the project. 
 
 ## Folder Structure
 
