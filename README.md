@@ -53,7 +53,7 @@ This project aims to predict ICU patient mortality using the **PhysioNet 2012 Ch
 Some cells in the notebooks generate files required by subsequent notebooks. If you need to recompute the dataset for model training, uncomment the section in the first notebook labeled with the comment:
 
 ```
-bash # Only need to run once
+# Only need to run once
 ```
 
 This will regenerate the `.parquet` files used in the later notebooks. Alternatively, you can use the pre-generated `.parquet` files provided in the repository. The same approach applies to the `.pkl` files containing the precomputed embeddings. For using these, please unzip the `outcomes.zip`, `set.zip`, `embeddings.zip` and `non_agg_embeddings.zip`.
