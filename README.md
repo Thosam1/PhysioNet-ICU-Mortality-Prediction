@@ -13,6 +13,8 @@ This project aims to predict ICU patient mortality using the **PhysioNet 2012 Ch
 
 For details, refer to our [📄 Project Report](./Machine_Learning_for_Health_Care___Project_Report.pdf).
 
+You can also find the [📝 Project Handout](./Project_1_ICU_Time_Series__Handout.pdf).
+
 ## Dataset
 - **Source**: [PhysioNet 2012 Challenge](https://physionet.org/content/challenge-2012/)
 - **Data**: First **48 hours** of ICU stay
