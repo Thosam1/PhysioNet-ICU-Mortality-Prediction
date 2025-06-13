@@ -15,6 +15,8 @@ For details, refer to our [📄 Project Report](./Machine_Learning_for_Health_Ca
 
 You can also find the [📝 Project Handout](./Project_1_ICU_Time_Series__Handout.pdf).
 
+We achieved a grade of **5.9**/6 for this project.
+
 ## Dataset
 - **Source**: [PhysioNet 2012 Challenge](https://physionet.org/content/challenge-2012/)
 - **Data**: First **48 hours** of ICU stay
