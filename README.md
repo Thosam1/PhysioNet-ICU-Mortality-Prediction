@@ -11,6 +11,8 @@
 ## Overview
 This project aims to predict ICU patient mortality using the **PhysioNet 2012 Challenge** dataset. We develop machine learning models based on **irregularly sampled multivariate time-series data**, capturing patient vitals and static attributes from the first **48 hours of ICU stay**. The goal is to predict whether a patient **survives or dies** in the ICU.
 
+For details, refer to our [📄 Project Report](./Machine_Learning_for_Health_Care___Project_Report.pdf).
+
 ## Dataset
 - **Source**: [PhysioNet 2012 Challenge](https://physionet.org/content/challenge-2012/)
 - **Data**: First **48 hours** of ICU stay
@@ -68,6 +70,7 @@ PhysioNet-ICU-Mortality-Prediction/
 ├── data_parsing/           # Scripts for parsing raw data
 ├── data_preprocessing/     # Scripts for cleaning and preprocessing data
 ├── models/                 # Machine learning and deep learning models
+├── notebooks/              # Jupyter notebooks for all experiments and analysis
 ├── utils/                  # Utility functions
 ├── visualization/          # Scripts for generating plots and visualizations
 ├── requirements.txt        # Python dependencies
